@@ -1,5 +1,6 @@
 import { SIZE, paintVillager, paintSkin, defaultFeatures, hexToRgb, rgbToHex } from './paint.js';
 import { Viewer } from './model.js';
+import { applyPhoto, LAYOUTS } from './photoface.js';
 import { villagerTexturePack, villagerVariantPack, skinPack, villagerAddon, canvasBlob, download, slugify } from './export.js';
 
 const $ = s => document.querySelector(s);
@@ -9,6 +10,9 @@ let features = defaultFeatures();
 const edits = { villager: new Map(), skin: new Map() };
 let mode = 'villager';
 let tool = 'paint';
+let look = 'pixel';   // or 'photo'
+let realism = 8;      // photo look: villager texture scale (2, 4 or 8)
+let source = null;    // { photo: clean canvas, anchors } once a face is found
 
 const tex = {
   villager: Object.assign(document.createElement('canvas'), { width: SIZE, height: SIZE }),
@@ -19,11 +23,30 @@ const editor = $('#editor');
 const ectx = editor.getContext('2d');
 
 // ---------- painting ----------
+const base = {
+  villager: Object.assign(document.createElement('canvas'), { width: SIZE, height: SIZE }),
+  skin: Object.assign(document.createElement('canvas'), { width: SIZE, height: SIZE }),
+};
+const photoLook = () => look === 'photo' && !!source;
 function render() {
-  draw(tex.villager, paintVillager(features), edits.villager);
-  draw(tex.skin, paintSkin(features), edits.skin);
+  const f = { ...features, photoFace: photoLook() };
+  draw(base.villager, paintVillager(f), edits.villager);
+  draw(base.skin, paintSkin(f), edits.skin);
+  compose('villager', photoLook() ? realism : 1);
+  compose('skin', photoLook() ? 2 : 1);
   viewer.refresh();
   drawEditor();
+}
+// Scales the 64x64 base up and, in the photo look, pastes the real face on.
+function compose(kind, S) {
+  const c = tex[kind];
+  if (c.width !== SIZE * S) { c.width = c.height = SIZE * S; }
+  const ctx = c.getContext('2d');
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, c.width, c.height);
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(base[kind], 0, 0, c.width, c.height);
+  if (photoLook()) applyPhoto(ctx, S, source.photo, source.anchors, LAYOUTS[kind]);
 }
 function draw(canvas, data, overrides) {
   const img = new ImageData(new Uint8ClampedArray(data), SIZE, SIZE);
@@ -58,6 +81,8 @@ function syncControls() {
 }
 for (const k of COLOR_KEYS) $(`#c-${k}`).addEventListener('input', e => { features[k] = hexToRgb(e.target.value); render(); });
 for (const k of SELECT_KEYS) $(`#s-${k}`).addEventListener('change', e => { features[k] = e.target.value; render(); });
+$('#s-look').addEventListener('change', e => { look = e.target.value; $('#realism-row').hidden = look !== 'photo'; render(); });
+$('#s-realism').addEventListener('change', e => { realism = +e.target.value; render(); });
 $('#shuffle').addEventListener('click', () => { features.seed = (Math.random() * 1e9) | 0; render(); });
 
 // ---------- photo ----------
@@ -80,7 +105,11 @@ async function loadFile(file) {
     setStatus('Finding your face…', 'busy');
     try {
       const { analyze } = await import('./face.js');
-      const { features: f, overlay } = await analyze(photo, features);
+      const { features: f, overlay, anchors } = await analyze(photo, features);
+      const keep = Object.assign(document.createElement('canvas'), { width: photo.width, height: photo.height });
+      keep.getContext('2d').putImageData(clean, 0, 0);
+      source = { photo: keep, anchors };
+      $('#look-photo').disabled = false;
       features = { ...f, seed: features.seed };
       edits.villager.clear(); edits.skin.clear();
       pctx.putImageData(clean, 0, 0);
@@ -140,7 +169,7 @@ function paintAt(e) {
   if (x < 0 || y < 0 || x >= SIZE || y >= SIZE) return;
   const key = y * SIZE + x;
   if (tool === 'pick') {
-    const d = tex[mode].getContext('2d').getImageData(x, y, 1, 1).data;
+    const d = base[mode].getContext('2d').getImageData(x, y, 1, 1).data;
     if (d[3]) $('#brush').value = rgbToHex([d[0], d[1], d[2]]);
     setTool('paint');
     return;
@@ -169,8 +198,10 @@ function iconBlob() {
   x.fillStyle = rgbToHex(features.robe);
   x.fillRect(0, 0, 128, 128);
   // the villager's face (8x10) with its nose (2x4) on top
-  x.drawImage(tex.villager, 8, 8, 8, 10, 24, 4, 80, 100);
-  x.drawImage(tex.villager, 26, 2, 2, 4, 54, 64, 20, 40);
+  const s = tex.villager.width / SIZE;
+  x.imageSmoothingEnabled = s > 1;
+  x.drawImage(tex.villager, 8 * s, 8 * s, 8 * s, 10 * s, 24, 4, 80, 100);
+  x.drawImage(tex.villager, 26 * s, 2 * s, 2 * s, 4 * s, 54, 64, 20, 40);
   return canvasBlob(c);
 }
 async function run(btn, fn) {

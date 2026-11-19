@@ -191,9 +191,9 @@ export function paintSkin(f) {
   const p = new Pix(f.seed + 1);
   const P = palette(f);
   paintHead(p, f, P, 0, 0, 8, 8, 8, { brow: 2, eye: 3, noseTop: 4, beardTop: 5 });
-  // villager nose on the hat layer so it pops out a little
+  // villager nose on the hat layer so it pops out a little (not in the photo look)
   p.box(32, 0, 8, 8, 8, (face, x, y) => {
-    if (face !== 'front' || (x !== 3 && x !== 4) || y < 3) return null;
+    if (f.photoFace || face !== 'front' || (x !== 3 && x !== 4) || y < 3) return null;
     if (y === 3) return P.skinLight;
     if (y === 7) return P.skinDark;
     return p.jit(P.skin, 0.03);

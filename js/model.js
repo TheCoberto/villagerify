@@ -142,7 +142,10 @@ export class Viewer {
     this.player.visible = mode === 'skin';
     this.controls.target.set(0, mode === 'villager' ? 17 : 16, 0);
   }
-  refresh() { this.vTex.needsUpdate = true; this.sTex.needsUpdate = true; }
+  refresh() {
+    // dispose first so a change in texture size re-allocates the GPU texture
+    for (const t of [this.vTex, this.sTex]) { t.dispose(); t.needsUpdate = true; }
+  }
   resize() {
     const w = this.canvas.clientWidth, h = this.canvas.clientHeight;
     if (!w || !h) return;
