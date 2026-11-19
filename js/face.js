@@ -102,7 +102,9 @@ export async function analyze(canvas, base) {
     robe, trim: shade(robe, 0.7), pants: mix(shade(robe, 0.5), [50, 50, 55], 0.5),
   };
   const outline = [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109];
+  const eyes = [P(468), P(473)].sort((a, b) => a[0] - b[0]);
   return {
+    anchors: { eyeL: eyes[0], eyeR: eyes[1], chin: P(152) },
     features,
     overlay: {
       outline: outline.map(i => [pts[i].x, pts[i].y]),

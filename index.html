@@ -36,6 +36,23 @@
       </label>
       <p id="status" class="status" role="status">Your photo never leaves your device. Everything runs in your browser.</p>
 
+      <div class="look">
+        <label>Look
+          <select id="s-look">
+            <option value="pixel">Pixel villager</option>
+            <option id="look-photo" value="photo" disabled>Photo face (cursed)</option>
+          </select>
+        </label>
+        <label id="realism-row" hidden>Realism
+          <select id="s-realism">
+            <option value="2">Low-res</option>
+            <option value="4">Medium</option>
+            <option value="8" selected>Hyper realistic</option>
+          </select>
+        </label>
+        <p class="hint">Photo face pastes your real face (and nose!) onto the villager. Needs a photo. Realism sets the villager texture size (up to 512×512); player skins stay 128×128, the most Minecraft allows.</p>
+      </div>
+
       <h2>2. Fine-tune</h2>
       <div class="controls">
         <fieldset>
