@@ -12,6 +12,7 @@ let mode = 'villager';
 let tool = 'paint';
 let look = 'pixel';   // or 'photo'
 let realism = 8;      // photo look: villager texture scale (2, 4 or 8)
+let fit = 'fill';     // photo look: 'fill' the head front or 'natural'
 let source = null;    // { photo: clean canvas, anchors } once a face is found
 
 const tex = {
@@ -46,7 +47,7 @@ function compose(kind, S) {
   ctx.clearRect(0, 0, c.width, c.height);
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(base[kind], 0, 0, c.width, c.height);
-  if (photoLook()) applyPhoto(ctx, S, source.photo, source.anchors, LAYOUTS[kind]);
+  if (photoLook()) applyPhoto(ctx, S, source.photo, source.anchors, LAYOUTS[kind], fit);
 }
 function draw(canvas, data, overrides) {
   const img = new ImageData(new Uint8ClampedArray(data), SIZE, SIZE);
@@ -81,8 +82,9 @@ function syncControls() {
 }
 for (const k of COLOR_KEYS) $(`#c-${k}`).addEventListener('input', e => { features[k] = hexToRgb(e.target.value); render(); });
 for (const k of SELECT_KEYS) $(`#s-${k}`).addEventListener('change', e => { features[k] = e.target.value; render(); });
-$('#s-look').addEventListener('change', e => { look = e.target.value; $('#realism-row').hidden = look !== 'photo'; render(); });
+$('#s-look').addEventListener('change', e => { look = e.target.value; $('#realism-row').hidden = look !== 'photo'; $('#fit-row').hidden = look !== 'photo'; render(); });
 $('#s-realism').addEventListener('change', e => { realism = +e.target.value; render(); });
+$('#s-fit').addEventListener('change', e => { fit = e.target.value; render(); });
 $('#shuffle').addEventListener('click', () => { features.seed = (Math.random() * 1e9) | 0; render(); });
 
 // ---------- photo ----------

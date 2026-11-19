@@ -104,7 +104,7 @@ export async function analyze(canvas, base) {
   const outline = [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109];
   const eyes = [P(468), P(473)].sort((a, b) => a[0] - b[0]);
   return {
-    anchors: { eyeL: eyes[0], eyeR: eyes[1], chin: P(152) },
+    anchors: { eyeL: eyes[0], eyeR: eyes[1], chin: P(152), top: P(10), left: P(234), right: P(454) },
     features,
     overlay: {
       outline: outline.map(i => [pts[i].x, pts[i].y]),
