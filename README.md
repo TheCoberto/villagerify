@@ -7,6 +7,7 @@ Turn a photo of your face into a Minecraft villager. **Live at https://thecobert
 3. Fine-tune with the colour pickers and styles, or edit pixels by hand.
 4. Download:
    - **Villager texture**: a `.mcpack` that reskins every villager, or the raw 64×64 PNG.
+   - **Villager variant**: a `.mcpack` that makes 1 to 5 of the 6 vanilla villager skin slots use your face, so real villagers (trading, professions, breeding) sometimes look like you. Replaces the vanilla villager client entity file (kept in `vanilla/`), so it may need updating if Mojang changes villagers.
    - **Player skin**: a `.mcpack` skin pack, or the raw 64×64 PNG.
    - **Custom villager**: a `.mcaddon` with a new mob and spawn egg. Normal villagers are untouched.
    - **3D render**: a 1024×1024 transparent PNG of the preview.

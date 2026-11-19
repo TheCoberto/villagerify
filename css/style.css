@@ -147,3 +147,4 @@ fieldset select { max-width: 60%; }
 .card .row { margin-top: 8px; }
 
 .foot { text-align: center; color: var(--muted); font-size: 13px; padding: 16px 16px 32px; }
+.inline { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 14px; margin-top: 8px; }

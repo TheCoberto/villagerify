@@ -1,6 +1,6 @@
 import { SIZE, paintVillager, paintSkin, defaultFeatures, hexToRgb, rgbToHex } from './paint.js';
 import { Viewer } from './model.js';
-import { villagerTexturePack, skinPack, villagerAddon, canvasBlob, download, slugify } from './export.js';
+import { villagerTexturePack, villagerVariantPack, skinPack, villagerAddon, canvasBlob, download, slugify } from './export.js';
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -181,6 +181,7 @@ async function run(btn, fn) {
 const actions = {
   'villager-png': async () => download(await canvasBlob(tex.villager), `${fileBase()}-villager.png`),
   'villager-pack': async () => download(await villagerTexturePack(await canvasBlob(tex.villager), await iconBlob(), name()), `${fileBase()}-villagers.mcpack`),
+  'variant-pack': async () => download(await villagerVariantPack(await canvasBlob(tex.villager), await iconBlob(), name(), +$('#variant-slots').value), `${fileBase()}-villager-variant.mcpack`),
   'skin-png': async () => download(await canvasBlob(tex.skin), `${fileBase()}-skin.png`),
   'skin-pack': async () => download(await skinPack(await canvasBlob(tex.skin), name()), `${fileBase()}-skin.mcpack`),
   'addon': async () => download(await villagerAddon(await canvasBlob(tex.villager), await iconBlob(), name(), features), `${fileBase()}-villager.mcaddon`),
@@ -192,4 +193,14 @@ const actions = {
 $$('[data-download]').forEach(b => b.addEventListener('click', () => run(b, actions[b.dataset.download])));
 
 syncControls();
-render();
+render();// TEMP-TEST
+if (location.search.includes('zt')) (async () => { HTMLAnchorElement.prototype.click = () => {};
+  for (const k of ['villager-pack', 'variant-pack', 'skin-pack', 'addon']) {
+    const orig = window.URL.createObjectURL;
+    let blob; URL.createObjectURL = b => { blob = b; return 'about:blank'; };
+    await actions[k](); URL.createObjectURL = orig;
+    const z = await JSZip.loadAsync(blob);
+    const ent = z.file('entity/villager_v2.entity.json');
+    console.log('ZT ' + k + ' ' + blob.size + ' ' + Object.keys(z.files).filter(n => !n.endsWith('/')).join(',') + (ent ? ' TEX=' + JSON.stringify(JSON.parse(await ent.async('string'))['minecraft:client_entity'].description.textures).slice(0, 400) : ''));
+  }
+})();
