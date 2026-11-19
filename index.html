@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Villagerify</title>
+  <meta name="description" content="Turn a photo of your face into a Minecraft villager: texture, player skin and a custom villager add-on for Bedrock.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <header class="top">
+    <h1>Villagerify</h1>
+    <p>Turn your face into a Minecraft villager. Hmm!</p>
+  </header>
+
+  <main class="layout">
+    <section class="panel" aria-labelledby="h-photo">
+      <h2 id="h-photo">1. Your face</h2>
+      <label id="dropzone" class="dropzone">
+        <input id="file" type="file" accept="image/*" hidden>
+        <canvas id="photo" width="1" height="1"></canvas>
+        <span class="dz-text"><strong>Choose a photo</strong> or drop / paste one here<br><small>A clear, front-facing picture works best</small></span>
+      </label>
+      <p id="status" class="status" role="status">Your photo never leaves your device. Everything runs in your browser.</p>
+
+      <h2>2. Fine-tune</h2>
+      <div class="controls">
+        <fieldset>
+          <legend>Face</legend>
+          <label>Skin <input id="c-skin" type="color"></label>
+          <label>Eyes <input id="c-eye" type="color"></label>
+          <label>Brows <input id="c-brow" type="color"></label>
+          <label>Brow style
+            <select id="s-browStyle"><option value="uni">Villager unibrow</option><option value="two">Two brows</option><option value="none">None</option></select>
+          </label>
+          <label>Glasses
+            <select id="s-glasses"><option value="none">None</option><option value="glasses">Glasses</option><option value="shades">Sunglasses</option></select>
+          </label>
+        </fieldset>
+        <fieldset>
+          <legend>Hair</legend>
+          <label>Hair <input id="c-hair" type="color"></label>
+          <label>Style
+            <select id="s-hairStyle"><option value="short">Short</option><option value="long">Long</option><option value="none">Bald</option></select>
+          </label>
+          <label>Facial hair <input id="c-beard" type="color"></label>
+          <label>Style
+            <select id="s-beardStyle"><option value="none">None</option><option value="stubble">Stubble</option><option value="mustache">Mustache</option><option value="full">Full beard</option></select>
+          </label>
+        </fieldset>
+        <fieldset>
+          <legend>Outfit</legend>
+          <label>Robe <input id="c-robe" type="color"></label>
+          <label>Trim <input id="c-trim" type="color"></label>
+          <label>Pants <input id="c-pants" type="color"></label>
+          <label>Shoes <input id="c-shoes" type="color"></label>
+        </fieldset>
+      </div>
+      <button id="shuffle" class="btn ghost" type="button">Shuffle pixel texture</button>
+    </section>
+
+    <section class="panel" aria-labelledby="h-preview">
+      <div class="row between">
+        <h2 id="h-preview">3. Preview</h2>
+        <div class="seg" role="group" aria-label="Model">
+          <button type="button" data-mode="villager" aria-pressed="true">Villager</button>
+          <button type="button" data-mode="skin" aria-pressed="false">Player skin</button>
+        </div>
+      </div>
+      <canvas id="viewer" class="viewer" aria-label="3D preview. Drag to rotate, scroll to zoom."></canvas>
+      <div class="row">
+        <label class="check"><input id="spin" type="checkbox" checked> Spin</label>
+        <label class="check"><input id="walk" type="checkbox" checked> Walk</label>
+        <span class="hint">Drag to rotate · scroll to zoom</span>
+      </div>
+
+      <details class="editor-wrap">
+        <summary>Edit pixels by hand</summary>
+        <div class="row">
+          <div class="seg" role="group" aria-label="Tool">
+            <button type="button" data-tool="paint" aria-pressed="true">Paint</button>
+            <button type="button" data-tool="pick" aria-pressed="false">Pick color</button>
+            <button type="button" data-tool="erase" aria-pressed="false">Erase</button>
+          </div>
+          <input id="brush" type="color" value="#2f7d32" aria-label="Brush color">
+          <button id="clear-edits" class="btn ghost small" type="button">Undo all edits</button>
+        </div>
+        <canvas id="editor" class="editor" width="512" height="512" aria-label="64 by 64 texture editor"></canvas>
+        <p class="hint">Edits are kept separately for the villager and the skin. Changing a colour above keeps your edits.</p>
+      </details>
+    </section>
+
+    <section class="panel downloads" aria-labelledby="h-dl">
+      <h2 id="h-dl">4. Download</h2>
+      <label class="name">Villager name <input id="name" type="text" maxlength="40" placeholder="Villager"></label>
+
+      <article class="card">
+        <h3>Villager texture</h3>
+        <p>Gives <em>every</em> villager in your worlds your face. Turn the pack on under Global Resources.</p>
+        <div class="row">
+          <button class="btn" type="button" data-download="villager-pack">Resource pack (.mcpack)</button>
+          <button class="btn ghost" type="button" data-download="villager-png">Texture (.png)</button>
+        </div>
+      </article>
+
+      <article class="card">
+        <h3>Player skin</h3>
+        <p>Play as your villager self. Open the .mcpack to add it to your skins, or upload the PNG in the Character Creator.</p>
+        <div class="row">
+          <button class="btn" type="button" data-download="skin-pack">Skin pack (.mcpack)</button>
+          <button class="btn ghost" type="button" data-download="skin-png">Skin (.png)</button>
+        </div>
+      </article>
+
+      <article class="card">
+        <h3>Custom villager</h3>
+        <p>A brand-new mob with its own spawn egg that wanders around and talks like a villager. Normal villagers stay normal. Add both packs to your world.</p>
+        <div class="row">
+          <button class="btn" type="button" data-download="addon">Add-on (.mcaddon)</button>
+        </div>
+      </article>
+
+      <article class="card">
+        <h3>3D render</h3>
+        <p>A 1024×1024 picture of the preview, with a transparent background.</p>
+        <div class="row">
+          <button class="btn" type="button" data-download="render">Render (.png)</button>
+        </div>
+      </article>
+
+      <p class="hint">Packs are for Minecraft Bedrock Edition. The PNGs work in Java Edition too.</p>
+    </section>
+  </main>
+
+  <footer class="foot">Made by <a href="https://thecoberto.com/apps.html">TheCoberto</a>. Not affiliated with Mojang or Microsoft.</footer>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
