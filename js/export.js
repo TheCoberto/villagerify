@@ -43,6 +43,23 @@ export async function villagerTexturePack(texture, icon, name) {
   return zip.generateAsync({ type: 'blob', mimeType: 'application/octet-stream' });
 }
 
+// 1b. Real villager variant: vanilla villagers already pick one of six skin slots
+// (skin_id 0-5) at random, and every slot uses the same texture. This points
+// `slots` of them at the new face, so real villagers (trading, professions,
+// breeding) sometimes spawn looking like you. Resource pack only.
+export async function villagerVariantPack(texture, icon, name, slots) {
+  const entity = await (await fetch('vanilla/villager_v2.entity.json')).json();
+  const keys = ['base6', 'base5', 'base4', 'base3', 'base2'].slice(0, slots);
+  const slug = slugify(name);
+  for (const k of keys) entity['minecraft:client_entity'].description.textures[k] = `textures/entity/villagerify/${slug}_variant`;
+  const zip = new JSZip();
+  zip.file('manifest.json', json(manifest(`${name} Villager Variant`, `About ${slots} in 6 villagers look like you. Made with Villagerify.`, 'resources')));
+  zip.file('pack_icon.png', icon);
+  zip.file('entity/villager_v2.entity.json', json(entity));
+  zip.file(`textures/entity/villagerify/${slug}_variant.png`, texture);
+  return zip.generateAsync({ type: 'blob', mimeType: 'application/octet-stream' });
+}
+
 // 2. Skin pack with one free skin.
 export async function skinPack(skin, name) {
   const zip = new JSZip();
